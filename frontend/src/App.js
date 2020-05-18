@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+
+import api from './services/api';
 
 import './App.css'
 import './global.css';
@@ -6,19 +8,81 @@ import './Sidebar.css';
 import './Main.css'
 
 function App() {
+
+  const [devs, setDevs] = useState([]);
+  const [github_username, setGithubUsername] = useState('');
+  const [techs, setTechs] = useState('');
+  const [latitude, setLatitude] = useState(0);
+  const [longitude, setLongitude] = useState(0);
+
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+
+        setLatitude(latitude);
+        setLongitude(longitude);
+      },
+      (err) => {
+        console.log(err);
+      },
+      {
+        timeout: 30000,
+      }
+    );
+  }, []);
+
+  useEffect(() => {
+    async function loadDevs() {
+      const response = await api.get('/devs')
+
+      setDevs(response.data);
+    }
+
+    loadDevs();
+  }, []);
+
+  async function handleAddDev(e) {
+    e.preventDefault();
+
+    const response = await api.post('/devs', {
+      github_username,
+      techs,
+      latitude,
+      longitude,
+    });
+    
+    setGithubUsername('');
+    setTechs('');
+
+    setDevs([...devs, response.data])
+  }
+
   return (
     <div className="app">
       <aside>
         <strong>Cadastar</strong>
-        <form>
+        <form onSubmit={handleAddDev}>
         <div className="input-block">
           <label htmlFor="github_username">Usuário do GitHub</label>
-          <input name="github_username" id="username_github" required/>
+          <input 
+            name="github_username" 
+            id="username_github" 
+            required
+            value={github_username}
+            onChange={e => setGithubUsername(e.target.value)}
+          />
         </div>
 
         <div className="input-block">
           <label htmlFor="techs">Tecnologias</label>
-          <input name="techs" id="techs" required/>
+          <input 
+            name="techs" 
+            id="techs" 
+            required
+            value={techs}
+            onChange={e => setTechs(e.target.value)}
+          />
         </div>
 
         <div className="input-block">
@@ -26,12 +90,26 @@ function App() {
           <div className="input-group">
             <div className="input-block">
               <label htmlFor="latitude">Latitude</label>
-              <input name="latitude" id="latitude" required/>
+              <input 
+                type="number" 
+                name="latitude" 
+                id="latitude" 
+                required 
+                value={latitude}
+                onChange={e => setLatitude(e.target.value)}
+              />
             </div>
 
             <div className="input-block">
               <label htmlFor="longitude">Longitude</label>
-              <input name="longitude" id="longitude" required/>
+              <input 
+                type="number" 
+                name="longitude" 
+                id="longitude" 
+                required 
+                value={longitude}
+                onChange={e => setLongitude(e.target.value)}
+              />
             </div>
           </div>
         </div>
@@ -41,54 +119,19 @@ function App() {
      
       <main>
         <ul>
-          <li className="dev-item">
+          {devs.map(dev => (
+            <li key={dev._id}className="dev-item">
             <header>
-              <img src="https://avatars1.githubusercontent.com/u/64540367?s=460&u=b24e641144501c2d733f23450d8a34a6e238ba35&v=4" alt="Gabriel Cancio"/>
+              <img src={dev.avatar_url} alt={dev.name}/>
               <div className="user-info">
-                <strong>Gabriel Cancio</strong>
-                <span>ReactJS, React Native, Node.js</span>
+                <strong>{dev.name}</strong>
+                <span>{dev.techs.join(', ')}</span>
               </div>
             </header>
-              <p>Apaixonado por programação e pelo mundo da tecnologia. Fascinado em aprender coisas novas.</p>
-              <a href="https://github.com/gabrielcancio">Acessar perfil no GitHub</a>
-            
+              <p>{dev.bio}</p>
+              <a href={`https://github.com/${dev.github_username}`}>Acessar perfil no GitHub</a>
           </li>
-          <li className="dev-item">
-            <header>
-              <img src="https://avatars1.githubusercontent.com/u/64540367?s=460&u=b24e641144501c2d733f23450d8a34a6e238ba35&v=4" alt="Gabriel Cancio"/>
-              <div className="user-info">
-                <strong>Gabriel Cancio</strong>
-                <span>ReactJS, React Native, Node.js</span>
-              </div>
-            </header>
-              <p>Apaixonado por programação e pelo mundo da tecnologia. Fascinado em aprender coisas novas.</p>
-              <a href="https://github.com/gabrielcancio">Acessar perfil no GitHub</a>
-            
-          </li>
-          <li className="dev-item">
-            <header>
-              <img src="https://avatars1.githubusercontent.com/u/64540367?s=460&u=b24e641144501c2d733f23450d8a34a6e238ba35&v=4" alt="Gabriel Cancio"/>
-              <div className="user-info">
-                <strong>Gabriel Cancio</strong>
-                <span>ReactJS, React Native, Node.js</span>
-              </div>
-            </header>
-              <p>Apaixonado por programação e pelo mundo da tecnologia. Fascinado em aprender coisas novas.</p>
-              <a href="https://github.com/gabrielcancio">Acessar perfil no GitHub</a>
-            
-          </li>
-          <li className="dev-item">
-            <header>
-              <img src="https://avatars1.githubusercontent.com/u/64540367?s=460&u=b24e641144501c2d733f23450d8a34a6e238ba35&v=4" alt="Gabriel Cancio"/>
-              <div className="user-info">
-                <strong>Gabriel Cancio</strong>
-                <span>ReactJS, React Native, Node.js</span>
-              </div>
-            </header>
-              <p>Apaixonado por programação e pelo mundo da tecnologia. Fascinado em aprender coisas novas.</p>
-              <a href="https://github.com/gabrielcancio">Acessar perfil no GitHub</a>
-            
-          </li>
+          ))}
         </ul>
       </main>
     </div>
