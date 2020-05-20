@@ -7,7 +7,7 @@ let io;
 const connections = [];
 
 exports.setupWebsocket = (server) => {
-    const io = socketio(server);
+    io = socketio(server);
 
     io.on('connection', socket => {
         const { latitude, longitude, techs } = socket.handshake.query;
