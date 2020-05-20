@@ -6,6 +6,7 @@ import { View, Text, TextInput, Image, TouchableOpacity, StyleSheet } from 'reac
 import { MaterialIcons } from '@expo/vector-icons';
 
 import api from '../services/api';
+import { connect, disconnect, subscribeToNewDevs } from '../services/socket';
 
 export default function Main() {
     const [devs, setDevs] = useState([]);
@@ -16,6 +17,18 @@ export default function Main() {
 
     function navigateToProfile(dev) {
         navigation.navigate('Profile', { github_username: dev })
+    }
+
+    function setupWebsocket() {
+        disconnect();
+
+        const { latitude, longitude } = currentRegion;
+
+        connect(
+            latitude,
+            longitude,
+            techs
+        );
     }
 
     async function loadDevs() {
@@ -30,6 +43,7 @@ export default function Main() {
         });
 
         setDevs(response.data.devs);
+        setupWebsocket();
     }
 
     function handleRegionChanged(region) {
@@ -58,6 +72,10 @@ export default function Main() {
 
         loadInitialPosition();
     });
+
+    useEffect(() => {
+        subscribeToNewDevs(dev => setDevs([...devs, dev]));
+    }, [devs])
 
     if(!currentRegion) {
         return null;
