@@ -91,7 +91,7 @@ DB_MONGO_URL_CONNECTION=PutHerYourStringConnection
 ---
 
 ## :zap: Running
-1. You can run the API (backend application) on backend directory and runnig the follow command:
+1. You can run the API (backend application) on backend directory and running the follow command:
 ```bash
 $ yarn dev
 ```
